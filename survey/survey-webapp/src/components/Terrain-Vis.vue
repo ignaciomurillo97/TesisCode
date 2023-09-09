@@ -1,5 +1,5 @@
 <template>
-  <div ref="container"></div>
+  <div class="three-container" ref="container"></div>
 </template>
 
 <script>
@@ -88,8 +88,8 @@ export default {
 </script>
 
 <style>
-div {
-  width: 500px;
-  height: 500px;
+div.three-container {
+  width: 400px;
+  height: 400px;
 }
 </style>
