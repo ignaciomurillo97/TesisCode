@@ -1,11 +1,16 @@
 const express = require('express');
+const cors = require('cors');
 const app = express();
+
+// CORS
+app.use(cors());
 
 // Mongoose connection
 const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/test', { useNewUrlParser: true })
+const mongo_url = 'mongodb://root:example@mongo:27017/'
+mongoose.connect(mongo_url, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
-  .catch(err => console.log('Could not connect to mongoDB: ', err));
+  .catch(err => console.log('Could not connect to mongoDB {}: ', err));
 
 // Define the model
 const surveyResponseSchema = new mongoose.Schema({
@@ -16,6 +21,8 @@ const surveyResponseSchema = new mongoose.Schema({
     answers: [String],
 }, { timestamps: true }); 
 
+const SurveyResponse = mongoose.model('SurveyResponse', surveyResponseSchema);
+
 // Body parser
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -25,25 +32,23 @@ app.use(bodyParser.json());
 app.use(express.static('build'));
 
 // API endpoint
-app.get('/api/data', (req, res) => {
-  // Return some sample data
-  const data = {
-    message: 'Hello, world!'
-  };
-  res.json(data);
+app.get('/api/survey', (req, res) => {
+  const responses = SurveyResponse.find({}).then((responses) => {res.json(responses)});
 });
 
-const SurveyResponse = require('./models/survey_response');
-
 // Save survey response
-app.post('/api/survey_response', (req, res) => {
+app.post('/api/survey', (req, res) => {
   // Save the survey response to the database
+  console.log("Received Survey Response:", req.body);
   const surveyResponse = new SurveyResponse(req.body);
   surveyResponse.save()
     .then(() => {
+      console.log("Success! saved survey response");
       res.json({ success: true });
     })
     .catch(err => {
+      // Log error
+      console.log("Error saving survey response:", err);
       res.json({ success: false, error: err });
     });
 });

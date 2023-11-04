@@ -4,6 +4,7 @@ import Scene from './Scene';
 import { click } from '@testing-library/user-event/dist/click';
 
 var clicks = 0;
+var iterations = 0;
 const indices = Array.from(Array(8).keys()).sort(() => Math.random() - 0.5);
 const selection = [];
 
@@ -30,13 +31,22 @@ function App() {
       selection.push(scenes[cardIndex - 1].id);
       console.log("selection:", selection);
       setFormData({ ...formData, answers: selection });
+
+      // Reorder scenes based on user's choice
+      const chosenScene = scenes[cardIndex - 1];
+      const otherScene = scenes.find((scene) => scene.id !== chosenScene.id);
+      const chosenIndex = indices.indexOf(chosenScene.id);
+      const otherIndex = indices.indexOf(otherScene.id);
+      const newIndices = [...indices];
+      newIndices[chosenIndex] = otherScene.id;
+      newIndices[otherIndex] = chosenScene.id;
+      setScenes([{ id: newIndices[clicks] }, { id: newIndices[clicks + 1] }]);
     }
 
     // While there's still images to present, update the cards
     if (clicks < indices.length - 2) {
-      // set scenes to be the next two algorithms
       clicks = clicks + 2;
-      setScenes([{id: clicks}, {id: clicks + 1}]);
+      setScenes([{ id: indices[clicks] }, { id: indices[clicks + 1] }]);
     } else {
       console.log("Finished!");
       handleNextClick();
@@ -51,7 +61,20 @@ function App() {
   const handleSubmit = (event) => {
     event.preventDefault();
     console.log(formData);
-    // TODO: send data to server
+    // POST fomData to server
+    fetch('http://localhost:3000/api/survey', {
+      method: 'POST',
+      mode: 'cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log('Success:', data);
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
   };
 
   // Form input change handler
@@ -125,7 +148,7 @@ function App() {
       <header className="text-center mb-4">
         <h1>Survey</h1>
       </header>
-      <form onSubmit={handleSubmit}>
+      <form>
         {renderFormFields()}
         <div className="d-flex justify-content-between">
           {currentPage == 1 && <button type="button" className="btn btn-primary" onClick={handleNextClick}>Next</button>}

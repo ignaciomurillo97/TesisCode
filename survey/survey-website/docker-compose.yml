@@ -5,7 +5,7 @@ services:
     image: node:14
     working_dir: /app
     volumes:
-      - /Users/nacho/Documents/Maestria/Projecto/survey/react-survey/survey-website/:/app
+      - /Users/nacho/Documents/Maestria/Projecto/survey/survey-website/:/app
     command: node ./server.js
     ports:
       - "3000:3000"
